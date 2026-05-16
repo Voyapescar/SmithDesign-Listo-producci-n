@@ -20,6 +20,11 @@ const HORIZONTAL_PANEL_INDEX = {
   '#horarios': 4,
 }
 
+// Índice → href (inverso del mapa anterior)
+const HORIZONTAL_INDEX_TO_HREF = Object.fromEntries(
+  Object.entries(HORIZONTAL_PANEL_INDEX).map(([href, idx]) => [idx, href])
+)
+
 const HIDE_DELAY = 2500
 
 export default function Navbar() {
@@ -66,6 +71,16 @@ export default function Navbar() {
 
     window.addEventListener('scroll', onScroll, { passive: true })
     return () => window.removeEventListener('scroll', onScroll)
+  }, [])
+
+  // Sincronizar el link activo con el panel horizontal visible
+  useEffect(() => {
+    const onPanelChange = (e) => {
+      const href = HORIZONTAL_INDEX_TO_HREF[e.detail.index]
+      if (href) setActiveHref(href)
+    }
+    window.addEventListener('h-panel-change', onPanelChange)
+    return () => window.removeEventListener('h-panel-change', onPanelChange)
   }, [])
 
   useEffect(() => {

@@ -291,10 +291,10 @@ export default function HomePage() {
       <div id="nosotros">
         <HorizontalScroll>
           <AboutPanel content={content} loading={loading} />
-          <div id="plans" className="h-full w-full overflow-hidden">
+          <div id="plans" className="h-full min-h-screen w-full overflow-hidden">
             <PlansSection plans={plans || []} loading={loading} />
           </div>
-          <div id="gallery" className="h-full w-full overflow-hidden">
+          <div id="gallery" className="h-full min-h-screen w-full overflow-hidden">
             <PhotoCarousel slides={slides || []} loading={loading} />
           </div>
           <div className="h-full w-full overflow-hidden">

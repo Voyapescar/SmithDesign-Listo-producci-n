@@ -26,6 +26,8 @@ html {
 
 body { margin: 0; overflow-x: hidden; }
 
+img, video { max-width: 100%; }
+
 h1,
 h2,
 h3,
@@ -70,6 +72,12 @@ h6 {
   66.67%        { opacity: 1; }
   99.99%        { opacity: 1; }
   100%          { opacity: 0; }
+}
+
+/* ── Auto-play bar (HorizontalScroll) ── */
+@keyframes autoplay-fill {
+  from { width: 0%; }
+  to   { width: 100%; }
 }
 
 /* ── Scrollbar ── */

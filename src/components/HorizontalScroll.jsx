@@ -1,5 +1,8 @@
-import { useRef, Children, useEffect, useCallback } from 'react'
+import { useRef, Children, useEffect, useCallback, useState } from 'react'
 import { motion, useScroll, useSpring, useTransform } from 'framer-motion'
+
+const AUTO_INTERVAL_MS = 6000  // tiempo entre cambios automáticos de panel
+const PAUSE_AFTER_INTERACT_MS = 4000  // pausa después de que el usuario interactúa
 
 const INTERACTIVE_SELECTOR = [
   'a', 'button', 'input', 'textarea', 'select', 'label',
@@ -59,6 +62,14 @@ export default function HorizontalScroll({
   const lastWheelDirRef = useRef(0)
   const reversalLockUntilRef = useRef(0)
 
+  // ── Auto-play refs ───────────────────────────────────────────────────
+  const pauseUntilRef = useRef(0)
+  const inViewRef = useRef(false)
+
+  const pauseAutoPlay = useCallback(() => {
+    pauseUntilRef.current = Date.now() + PAUSE_AFTER_INTERACT_MS
+  }, [])
+
   // Jump window scroll instantly to panel n — the spring handles the visuals
   const scrollToPanel = useCallback((n) => {
     const el = containerRef.current
@@ -69,6 +80,42 @@ export default function HorizontalScroll({
     // Each panel stop is exactly one viewport apart inside the sticky section.
     window.scrollTo({ top: containerTop + target * vh, behavior: 'instant' })
   }, [maxIndex])
+
+  // Notificar al Navbar qué panel está activo
+  useEffect(() => {
+    return indexMV.on('change', (v) => {
+      window.dispatchEvent(
+        new CustomEvent('h-panel-change', { detail: { index: Math.round(v) } })
+      )
+    })
+  }, [indexMV])
+
+  // Observar si la sección está visible en el viewport
+  useEffect(() => {
+    const el = containerRef.current
+    if (!el) return
+    const observer = new IntersectionObserver(
+      ([entry]) => { inViewRef.current = entry.isIntersecting },
+      { threshold: 0.1 }
+    )
+    observer.observe(el)
+    return () => observer.disconnect()
+  }, [])
+
+  // Intervalo de auto-avance (solo desktop, pausa si el usuario interactúa)
+  useEffect(() => {
+    const timer = setInterval(() => {
+      if (!inViewRef.current) return
+      if (Date.now() < pauseUntilRef.current) return
+      if (window.innerWidth < 768) return
+      if (!containerRef.current || containerRef.current.offsetParent === null) return
+      const p = scrollYProgress.get()
+      const idx = Math.max(0, Math.min(maxIndex, Math.round(p * maxIndex)))
+      if (idx >= maxIndex) return
+      scrollToPanel(idx + 1)
+    }, AUTO_INTERVAL_MS)
+    return () => clearInterval(timer)
+  }, [scrollYProgress, maxIndex, scrollToPanel])
 
   // Non-passive wheel: intercept while in sticky zone, advance one panel per burst
   useEffect(() => {
@@ -81,6 +128,7 @@ export default function HorizontalScroll({
     const ENTRY_HOLD_MS = 700
 
     function onWheel(e) {
+      pauseUntilRef.current = Date.now() + PAUSE_AFTER_INTERACT_MS
       const p = scrollYProgress.get()
       const now = performance.now()
       const dir = Math.sign(e.deltaY)
@@ -165,6 +213,7 @@ export default function HorizontalScroll({
     // Horizontal drag should not hijack interactive controls inside panels.
     if (e.pointerType !== 'mouse' || e.button !== 0) return
     if (e.target instanceof Element && e.target.closest(INTERACTIVE_SELECTOR)) return
+    pauseAutoPlay()
     dragStartX.current = e.clientX
   }
 
@@ -212,6 +261,9 @@ export default function HorizontalScroll({
             ))}
           </div>
 
+          {/* Auto-play progress bar — se llena cada 6 s, desaparece en el último panel */}
+          <AutoPlayBar indexMV={indexMV} maxIndex={maxIndex} intervalMs={AUTO_INTERVAL_MS} pauseUntilRef={pauseUntilRef} />
+
           {/* Scroll hint — visible only at the very start */}
           <motion.div
             style={{ opacity: useTransform(scrollYProgress, [0, 0.05], [1, 0]) }}
@@ -234,6 +286,42 @@ export default function HorizontalScroll({
 }
 
 // ── Sub-components ───────────────────────────────────────────────────────────
+
+function AutoPlayBar({ indexMV, maxIndex, intervalMs, pauseUntilRef }) {
+  const [key, setKey] = useState(0)
+  const [paused, setPaused] = useState(false)
+  const opacity = useTransform(indexMV, v => v >= maxIndex ? 0 : 1)
+
+  // Reiniciar la animación cuando cambia el panel activo
+  useEffect(() => {
+    return indexMV.on('change', () => setKey(k => k + 1))
+  }, [indexMV])
+
+  // Detectar si el usuario pausó la reproducción automática
+  useEffect(() => {
+    const id = setInterval(() => {
+      setPaused(Date.now() < pauseUntilRef.current)
+    }, 300)
+    return () => clearInterval(id)
+  }, [pauseUntilRef])
+
+  return (
+    <motion.div
+      style={{ opacity }}
+      className="absolute top-0 left-0 right-0 z-40 h-[2px] bg-white/[0.06] pointer-events-none"
+    >
+      <div
+        key={key}
+        className="h-full bg-[#ccff00]/60"
+        style={{
+          boxShadow: '0 0 6px #ccff0066',
+          animation: paused ? 'none' : `autoplay-fill ${intervalMs}ms linear forwards`,
+          width: paused ? '0%' : undefined,
+        }}
+      />
+    </motion.div>
+  )
+}
 
 function ProgressDot({ index, indexMV }) {
   // Dot state follows the exact snapped panel index for perfect sync.

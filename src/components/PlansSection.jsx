@@ -114,7 +114,7 @@ function PlanCard({ plan, index }) {
  */
 export default function PlansSection({ plans = [], loading = false }) {
   return (
-    <section id="plans" className="relative overflow-hidden h-full w-full px-4 sm:px-6 md:px-8 py-24 md:py-0 bg-black flex flex-col justify-center">
+    <section id="plans" className="relative overflow-hidden h-full min-h-screen w-full px-4 sm:px-6 md:px-8 py-24 md:py-0 bg-black flex flex-col justify-center">
       {/* ── Background video ── */}
       <video
         autoPlay muted loop playsInline preload="none"
