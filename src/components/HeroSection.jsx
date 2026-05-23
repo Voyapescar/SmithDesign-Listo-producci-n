@@ -151,6 +151,7 @@ export default function HeroSection({ content = {}, dataLoaded = true }) {
     >
       {/* ── Background video ──────────────────────────────── */}
       <video
+        key={heroVideoUrl}
         autoPlay
         muted
         loop
