@@ -126,6 +126,12 @@ function SiteContentPanel({ toast }) {
         <Field label="Título Hero"    register={register} name="hero_title" />
         <Field label="CTA Hero"       register={register} name="hero_cta" />
       </div>
+      <Field
+        label="Video Hero (URL)"
+        register={register}
+        name="hero_video_url"
+        placeholder="/images/video1.mp4"
+      />
       <Field label="Subtítulo Hero"   register={register} name="hero_subtitle" />
       <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
         <Field label="Título About"   register={register} name="about_title" />

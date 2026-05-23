@@ -115,15 +115,6 @@ function PlanCard({ plan, index }) {
 export default function PlansSection({ plans = [], loading = false }) {
   return (
     <section id="plans" className="relative overflow-hidden h-full min-h-screen w-full px-4 sm:px-6 md:px-8 py-24 md:py-0 bg-black flex flex-col justify-center">
-      {/* ── Background video ── */}
-      <video
-        autoPlay muted loop playsInline preload="none"
-        className="absolute inset-0 w-full h-full object-cover object-center"
-        aria-hidden="true"
-      >
-        <source src="/images/video3.mp4" type="video/mp4" />
-      </video>
-      <div className="absolute inset-0 bg-black/82" />
 
       <div className="relative z-10 w-full max-w-6xl mx-auto">
         <motion.div

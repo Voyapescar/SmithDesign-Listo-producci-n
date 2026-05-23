@@ -6,6 +6,7 @@ const DEFAULT_CONTENT = {
   hero_subtitle: '¿Quieres mejorar tu estado físico? Ven y conoce los planes que tenemos especialmente para ti.',
 
   hero_cta:      'Empieza Ahora',
+  hero_video_url:'/images/video1.mp4',
   about_title:   'Más Que Un Gimnasio',
   about_text:    'Smith Design ofrece una experiencia de entrenamiento integral y profesional. Contamos con 4 entrenadores de distintas disciplinas y un Kinesiólogo para garantizar un entrenamiento seguro y efectivo. Nuestras instalaciones incluyen variedad de máquinas, baños equipados y casilleros. También contamos con una cafetería y un espacio de juegos de mesa — un lugar diseñado para que te sientas cómodo, alcances tus metas de estética o Powerlifting y disfrutes de tu vida social.',
   footer_tagline:'POWER. FOCUS. ELITE.',

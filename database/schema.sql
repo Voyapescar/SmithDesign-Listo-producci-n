@@ -17,6 +17,7 @@ INSERT INTO public.site_content (key, value) VALUES
   ('hero_title',       'FORJA TU LÍMITE'),
   ('hero_subtitle',    'El gimnasio de élite que te desafía a ir más allá.'),
   ('hero_cta',         'Empieza Ahora'),
+  ('hero_video_url',   '/images/video1.mp4'),
   ('about_title',      'Nuestra Filosofía'),
   ('about_text',       'No somos un gimnasio convencional. Somos un laboratorio de rendimiento humano donde la tecnología, la ciencia y la disciplina se fusionan para llevarte al siguiente nivel.'),
   ('contact_email',    'info@smithdesigngym.com'),

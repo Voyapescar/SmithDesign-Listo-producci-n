@@ -11,16 +11,8 @@ import { MessageCircle } from 'lucide-react'
 // ─── About panel (used as one of the horizontal panels) ───
 function AboutPanel({ content, loading }) {
   return (
-    <section className="relative h-full min-h-screen w-full flex items-center overflow-hidden px-5 sm:px-8 md:px-16 py-24 pb-32 md:py-0 md:pb-0">
-      {/* ── Background video ── */}
-      <video
-        autoPlay muted loop playsInline preload="none"
-        className="absolute inset-0 w-full h-full object-cover object-center"
-        aria-hidden="true"
-      >
-        <source src="/images/video2.mp4" type="video/mp4" />
-      </video>
-      <div className="absolute inset-0 bg-black/78" />
+    <section className="relative h-full min-h-screen w-full flex items-center overflow-hidden px-5 sm:px-8 md:px-16 py-24 pb-32 md:py-0 md:pb-0 bg-black">
+      <div className="absolute inset-0 bg-black" />
 
       <div className="relative z-10 w-full max-w-7xl mx-auto flex flex-col md:flex-row items-center gap-10 md:gap-16 lg:gap-24">
 
@@ -92,15 +84,8 @@ function ProfessionalsSection({ members = [], loading }) {
   }
 
   return (
-    <section id="profesionales" className="relative h-full min-h-screen w-full px-6 py-24 md:px-12 md:py-16 flex items-center overflow-hidden">
-      <video
-        autoPlay muted loop playsInline preload="none"
-        className="absolute inset-0 w-full h-full object-cover object-center"
-        aria-hidden="true"
-      >
-        <source src="/images/video1.mp4" type="video/mp4" />
-      </video>
-      <div className="absolute inset-0 bg-black/83" />
+    <section id="profesionales" className="relative h-full min-h-screen w-full px-6 py-24 md:px-12 md:py-16 flex items-center overflow-hidden bg-black">
+      <div className="absolute inset-0 bg-black" />
 
       <div className="relative z-10 w-full max-w-6xl mx-auto">
         <motion.div
@@ -186,15 +171,8 @@ function ProfessionalsSection({ members = [], loading }) {
 
 function ScheduleSection({ schedules = [] }) {
   return (
-    <section id="horarios" className="relative h-full min-h-screen w-full px-6 py-24 md:px-12 md:py-16 flex items-center overflow-hidden">
-      <video
-        autoPlay muted loop playsInline preload="none"
-        className="absolute inset-0 w-full h-full object-cover object-center"
-        aria-hidden="true"
-      >
-        <source src="/images/video3.mp4" type="video/mp4" />
-      </video>
-      <div className="absolute inset-0 bg-black/84" />
+    <section id="horarios" className="relative h-full min-h-screen w-full px-6 py-24 md:px-12 md:py-16 flex items-center overflow-hidden bg-black">
+      <div className="absolute inset-0 bg-black" />
 
       <div className="relative z-10 w-full max-w-6xl mx-auto">
         <motion.div

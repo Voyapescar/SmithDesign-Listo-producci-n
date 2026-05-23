@@ -136,6 +136,9 @@ export default function HeroSection({ content = {}, dataLoaded = true }) {
 
   const title = dataLoaded ? (content.hero_title ?? '') : ''
   const subtitle = dataLoaded ? (content.hero_subtitle ?? '') : ''
+  const heroVideoUrl = (dataLoaded && content.hero_video_url)
+    ? content.hero_video_url
+    : '/images/video1.mp4'
 
   // Split title into lines for individual styling
   const lines = title.split('\n').filter(Boolean)
@@ -156,7 +159,7 @@ export default function HeroSection({ content = {}, dataLoaded = true }) {
         className="absolute inset-0 w-full h-full object-cover"
         style={{ willChange: 'transform' }}
       >
-        <source src="/images/video1.mp4" type="video/mp4" />
+        <source src={heroVideoUrl} type="video/mp4" />
       </video>
 
       {/* ── Dark overlay ─────────────────────────────────── */}
