@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from 'react'
+import { useState, useCallback, useEffect, useRef } from 'react'
 import { useForm } from 'react-hook-form'
 import { motion, AnimatePresence } from 'framer-motion'
 import { supabase } from '../../lib/supabaseClient'
@@ -40,6 +40,11 @@ function ToastStack({ toasts }) {
 const inputCls =
   'w-full bg-[#0d0d0d] border border-white/[0.08] rounded-xl px-4 py-3 text-white text-sm ' +
   'placeholder-white/20 focus:outline-none focus:border-[#ccff00]/60 transition-colors'
+
+const BUCKET = import.meta.env.VITE_SUPABASE_STORAGE_BUCKET || 'smithdesign'
+const HERO_VIDEO_TYPES = ['video/mp4', 'video/webm', 'video/quicktime']
+const HERO_VIDEO_MAX_MB = 50
+const HERO_VIDEO_MAX_BYTES = HERO_VIDEO_MAX_MB * 1024 * 1024
 
 // ─── Field ───────────────────────────────────────────────
 function Field({ label, register, name, type = 'text', placeholder, rows, className = '' }) {
@@ -97,9 +102,67 @@ function SaveBtn({ saving, saved, label = 'Guardar', onClick }) {
 // ─── SiteContentPanel ────────────────────────────────────
 function SiteContentPanel({ toast }) {
   const { content, refetch } = useSiteContent()
-  const { register, handleSubmit } = useForm({ values: content })
+  const { register, handleSubmit, setValue } = useForm({ values: content })
   const [saving, setSaving] = useState(false)
   const [saved,  setSaved]  = useState(false)
+  const [uploadingVideo, setUploadingVideo] = useState(false)
+  const [videoPreview, setVideoPreview] = useState(content?.hero_video_url || '')
+  const videoInputRef = useRef(null)
+
+  useEffect(() => {
+    setVideoPreview(content?.hero_video_url || '')
+  }, [content?.hero_video_url])
+
+  const handleVideoFile = async (file) => {
+    if (!file || !supabase) return
+    if (!HERO_VIDEO_TYPES.includes(file.type)) {
+      toast('Formato no permitido. Usa MP4, WebM o MOV', 'error')
+      return
+    }
+    if (file.size > HERO_VIDEO_MAX_BYTES) {
+      toast(`El video supera ${HERO_VIDEO_MAX_MB} MB`, 'error')
+      return
+    }
+
+    setUploadingVideo(true)
+    try {
+      const cleanName = file.name.replace(/[^a-zA-Z0-9._-]/g, '_')
+      const path = `hero/video_${Date.now()}_${cleanName}`
+      const { error: upErr } = await supabase.storage.from(BUCKET).upload(path, file, {
+        upsert: true,
+        contentType: file.type,
+        cacheControl: '3600',
+      })
+      if (upErr) throw upErr
+
+      const { data: { publicUrl } } = supabase.storage.from(BUCKET).getPublicUrl(path)
+      const { error: dbErr } = await supabase
+        .from('site_content')
+        .upsert({ key: 'hero_video_url', value: publicUrl }, { onConflict: 'key' })
+      if (dbErr) throw dbErr
+
+      setValue('hero_video_url', publicUrl)
+      setVideoPreview(publicUrl)
+      toast('Video actualizado')
+      refetch()
+    } catch (err) {
+      toast(err?.message || 'Error al subir video', 'error')
+    } finally {
+      setUploadingVideo(false)
+    }
+  }
+
+  const handleVideoInput = (event) => {
+    const file = event.target.files?.[0]
+    if (file) handleVideoFile(file)
+    event.target.value = ''
+  }
+
+  const handleVideoDrop = (event) => {
+    event.preventDefault()
+    const file = event.dataTransfer.files?.[0]
+    if (file) handleVideoFile(file)
+  }
 
   const onSubmit = async (data) => {
     if (!supabase) { toast('Supabase no configurado', 'error'); return }
@@ -126,12 +189,50 @@ function SiteContentPanel({ toast }) {
         <Field label="Título Hero"    register={register} name="hero_title" />
         <Field label="CTA Hero"       register={register} name="hero_cta" />
       </div>
-      <Field
-        label="Video Hero (URL)"
-        register={register}
-        name="hero_video_url"
-        placeholder="/images/video1.mp4"
-      />
+      <div className="space-y-3">
+        <label className="block text-[11px] font-semibold uppercase tracking-[0.2em] text-white/30">
+          Video Hero
+        </label>
+        <div className="flex flex-col md:flex-row gap-4 items-start">
+          <div className="relative w-36 h-24 rounded-xl overflow-hidden border border-white/[0.06] bg-[#080808] flex items-center justify-center">
+            {videoPreview
+              ? <video src={videoPreview} className="w-full h-full object-cover" muted playsInline loop />
+              : <Upload size={18} className="text-white/20" />
+            }
+            <label className={`group absolute inset-0 flex items-center justify-center cursor-pointer transition-all ${uploadingVideo ? 'bg-black/60' : 'bg-black/0 hover:bg-black/50'}`}>
+              <input
+                ref={videoInputRef}
+                type="file"
+                accept="video/mp4,video/webm,video/quicktime"
+                className="hidden"
+                onChange={handleVideoInput}
+                disabled={uploadingVideo}
+              />
+              {uploadingVideo
+                ? <Loader2 size={14} className="text-[#ccff00] animate-spin" />
+                : <Upload size={14} className="text-white opacity-0 group-hover:opacity-100 transition-opacity" />
+              }
+            </label>
+          </div>
+          <div className="flex-1">
+            <div
+              className="rounded-xl border border-dashed border-white/10 bg-[#0d0d0d] px-4 py-5 text-white/30 text-xs uppercase tracking-widest text-center"
+              onDragOver={event => event.preventDefault()}
+              onDrop={handleVideoDrop}
+              onClick={() => videoInputRef.current?.click()}
+            >
+              Arrastra el video aqui o haz clic para subirlo
+            </div>
+            <div className="mt-3">
+              <input
+                placeholder="URL de video (opcional)"
+                {...register('hero_video_url')}
+                className={inputCls}
+              />
+            </div>
+          </div>
+        </div>
+      </div>
       <Field label="Subtítulo Hero"   register={register} name="hero_subtitle" />
       <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
         <Field label="Título About"   register={register} name="about_title" />
@@ -438,7 +539,6 @@ function PlansPanel({ toast }) {
 }
 
 // ─── CarouselPanel ───────────────────────────────────────
-const BUCKET = import.meta.env.VITE_SUPABASE_STORAGE_BUCKET || 'smithdesign'
 
 // Single slide row with its own replace-image upload
 function SlideRow({ slide, onUpdate, onRemove, toast }) {
